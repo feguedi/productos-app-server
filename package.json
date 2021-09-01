@@ -1,0 +1,31 @@
+{
+  "name": "productos_app_server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "test": "lab test/app -v",
+    "start": "node index.js",
+    "dev": "nodemon index.js -e js"
+  },
+  "license": "GNU GPL V3.0",
+  "dependencies": {
+    "@hapi/boom": "^9.1.4",
+    "@hapi/cookie": "^11.0.2",
+    "@hapi/hapi": "^20.1.5",
+    "@hapi/inert": "^6.0.3",
+    "@hapi/jwt": "^2.1.0",
+    "aws-sdk": "^2.978.0",
+    "bcrypt": "^5.0.1",
+    "dotenv": "^10.0.0",
+    "mongoose": "^5.13.8",
+    "mongoose-unique-validator": "^2.0.3",
+    "qs": "^6.10.1",
+    "underscore": "^1.13.1"
+  },
+  "devDependencies": {
+    "@hapi/code": "^8.0.3",
+    "@hapi/lab": "^24.3.2",
+    "nodemon": "^2.0.12"
+  }
+}
