@@ -79,7 +79,6 @@ const routes = [
         async handler(request, h) {
             try {
                 console.log('PUT /api/producto/', request.params.id)
-                console.log('headers:', JSON.stringify(request.headers, null, 2))
                 const { nombre, precio, imagen, disponible } = request.payload
 
                 const id = request.params.id

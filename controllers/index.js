@@ -76,22 +76,17 @@ exports.actualizarProducto = async (id, datos = { nombre, precio, imagen, dispon
 
         console.log('producto:', producto.nombre)
 
-        datosKeys.forEach(async key => {
-            if (key === 'imagen') {
-                const nombre = datos.nombre ? datos.nombre : producto.nombre
-                const filenameSplitted = String(datos.imagen.hapi.filename).split('.')
-                const extension = filenameSplitted[filenameSplitted.length - 1]
-                const filename = 'prod-'.concat(String(nombre).split(' ').map(palabra => palabra.toLowerCase()).join('').slice(0, 10), '.', extension)
+        if (datos.imagen) {
+            const nombre = datos.nombre ? datos.nombre : producto.nombre
+            const filenameSplitted = String(datos.imagen.hapi.filename).split('.')
+            const extension = filenameSplitted[filenameSplitted.length - 1]
+            const filename = 'prod-'.concat(String(nombre).split(' ').map(palabra => palabra.toLowerCase()).join('').slice(0, 10), '.', extension)
 
-                const awsResponse = await uploadToAWS(imagen, filename)
-                producto['imagen'] = awsResponse.location
-            } else {
-                const dato = datos[key]
-                if (dato) {
-                    producto[key] = dato
-                }
-            }
-        })
+            const awsResponse = await uploadToAWS(datos.imagen, filename)
+            producto['imagen'] = awsResponse.location
+        }
+
+        datosKeys.forEach(key => { if (key !== 'imagen' && datos[key]) producto[key] = datos[key] })
 
         await producto.save()
 
