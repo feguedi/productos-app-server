@@ -3,12 +3,21 @@ const Boom = require('@hapi/boom')
 const {
     crearUsuario,
     login,
+    logout,
     obtenerProductos,
     obtenerProducto,
     crearProducto,
     actualizarProducto,
     eliminarProducto,
 } = require('../controllers')
+const {
+    crearUsuarioRequest,
+    loginRequest,
+} = require('../schemas/request')
+const {
+    simpleMensajeResponse,
+} = require('../schemas/response')
+const { failAction } = require('../helpers/validations')
 
 /**
  * @type Hapi.ServerRoute[]
@@ -17,6 +26,12 @@ const routes = [
     {
         method: 'POST',
         path: '/api/login',
+        options: {
+            validate: {
+                failAction,
+                payload: loginRequest,
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('POST /api/login')
@@ -34,11 +49,23 @@ const routes = [
     {
         method: 'POST',
         path: '/api/usuario',
+        options: {
+            validate: {
+                failAction,
+                payload: crearUsuarioRequest,
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('POST /api/usuario')
                 const { nombre, grupo, correoElectronico, contrasenia } = request.payload
                 const usuarioNuevo = await crearUsuario({ nombre, grupo, correoElectronico, contrasenia })
+
+                if (usuarioNuevo.token) {
+                    request.cookieAuth.set({ id: usuarioNuevo.id })
+                } else {
+                    delete usuarioNuevo.token
+                }
 
                 return usuarioNuevo
             } catch (error) {
@@ -52,6 +79,12 @@ const routes = [
         async handler (request, h) {
             try {
                 console.log('POST /api/logout')
+                const { id } = request.auth.credentials
+                const salir = await logout(id)
+
+                if (!salir.ok) {
+                    throw Boom.badRequest('No se pudo eliminar la sesión')
+                }
                 request.cookieAuth.clear(['sid'])
 
                 return { message: 'Vuelva prontos' }

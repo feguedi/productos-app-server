@@ -21,15 +21,35 @@ exports.login = async ({ correoElectronico, contrasenia }) => {
         }
 
         const token = crearToken({ id: usuarioBD.id, grupo: usuarioBD.grupo })
+        const momento = new Date()
+        const expiracion = momento.getTime() + 259200000
         const sesionNueva = new Sesion({
             usuario: usuarioBD.id,
             token,
             expiracion
         })
 
+        await sesionNueva.save()
+
         return { id: usuarioBD.id, token }
     } catch (error) {
         console.error('login error:', error)
+        throw new Boom.Boom(error)
+    }
+}
+
+exports.logout = async usuarioID => {
+    try {
+        const sesion = await Sesion.findOne({ usuario: usuarioID, activa: true }, 'activa')
+        if (!sesion) {
+            throw Boom.badRequest('No hay sesión')
+        }
+
+        sesion.activa = false
+        await sesion.save()
+
+        return { ok: true }
+    } catch (error) {
         throw new Boom.Boom(error)
     }
 }
@@ -40,7 +60,10 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
         const usuarioNuevo = new Usuario({ nombre, grupo, correoElectronico, contrasenia: contraseniaHashed })
         await usuarioNuevo.save()
 
+        const token = crearToken({ id: usuarioBD.id })
+
         return {
+            token: !nombre && !grupo ? token : undefined,
             message: `Usuario${`${nombre ? (' ' + nombre) : ''} ${grupo ? ('(' + grupo + ') ') : ''}`}creado`,
             id: usuarioNuevo.id,
         }

@@ -9,14 +9,15 @@ exports.jwtStrategy = {
     },
     verify: {
         exp: true,
-        maxAgeSec: 14400,
+        maxAgeSec: 14400 * 432, // 3 días
         timeSkewSec: 15,
-        aud: ['urn:audience:test'],
-        iss: 'urn:issuer:test',
+        nbf: true,
+        aud: false,
+        iss: false,
         sub: false,
     },
     async validate (artifacts, request, h) {
-        const usuarioBD = await Usuario.findById(artifacts.decoded.payload.id)
+        const usuarioBD = await Usuario.findById(artifacts.decoded.payload.id, 'id nombre correoElectronico grupo')
         if (!usuarioBD) {
             return {
                 isValid: false,
@@ -25,6 +26,7 @@ exports.jwtStrategy = {
         }
 
         usuarioBD['scope'] = usuarioBD.grupo
+        usuarioBD['token'] = artifacts.token
 
         return {
             isValid: true,
@@ -33,11 +35,9 @@ exports.jwtStrategy = {
     },
 }
 
-exports.crearToken = ({ id, nombre, grupo }) => token.generate(
+exports.crearToken = ({ id }) => token.generate(
     {
         id,
-        user: nombre,
-        group: grupo,
     },
     {
         key: process.env.SECRET_KEY,
