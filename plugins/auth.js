@@ -35,20 +35,29 @@ exports.jwtStrategy = {
     },
 }
 
-exports.crearToken = ({ id }) => token.generate(
-    {
-        id,
-    },
-    {
-        key: process.env.SECRET_KEY,
-        algorithm: 'ES512',
-    },
-    {
-        typ: 'JWT',
-        ttlSec: 14400 * 432, // 3 días
-        now: Date.now(),
+exports.crearToken = id => {
+    try {
+        const tokenNuevo = token.generate(
+            {
+                id,
+            },
+            {
+                key: process.env.SECRET_KEY,
+                algorithm: 'HS512',
+            },
+            {
+                iat: Date.now(),
+                typ: 'JWT',
+                exp: '7d',
+            }
+        )
+
+        return tokenNuevo
+    } catch (error) {
+        console.error(error)
+        throw new Error('No se pudo crear el token')
     }
-)
+}
 
 exports.cookieStrategy = {
     cookie: {

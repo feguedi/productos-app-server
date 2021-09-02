@@ -34,7 +34,6 @@ exports.login = async ({ correoElectronico, contrasenia }) => {
 
         return { id: usuarioBD.id, token }
     } catch (error) {
-        console.error('login error:', error)
         throw errorHandler(error)
     }
 }
@@ -61,7 +60,7 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
         const usuarioNuevo = new Usuario({ nombre, grupo, correoElectronico, contrasenia: contraseniaHashed })
         await usuarioNuevo.save()
 
-        const token = crearToken({ id: usuarioBD.id })
+        const token = crearToken(usuarioNuevo.id)
 
         return {
             token: !nombre && !grupo ? token : undefined,
@@ -69,7 +68,6 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
             id: usuarioNuevo.id,
         }
     } catch (error) {
-        console.error('crearUsuario error:', error)
         throw errorHandler(error)
     }
 }
@@ -80,7 +78,6 @@ exports.obtenerProductos = async () => {
 
         return { total: productos.length, productos }
     } catch (error) {
-        console.error('obtenerProductos error:', error)
         throw errorHandler(error)
     }
 }
@@ -91,7 +88,6 @@ exports.obtenerProducto = async (id) => {
 
         return producto
     } catch (error) {
-        console.error('obtenerProducto error:', error)
         throw errorHandler(error)
     }
 }
@@ -127,7 +123,6 @@ exports.crearProducto = async (nombre, precio, { imagen, disponible }) => {
 
         return { message: 'Se creo el producto' }
     } catch (error) {
-        console.error('crearProducto error:', error)
         throw errorHandler(error)
     }
 }
@@ -163,7 +158,6 @@ exports.actualizarProducto = async (id, datos = { nombre, precio, imagen, dispon
 
         return { message: `${producto.nombre} actualizado (${datosKeys.join(' ')})` }
     } catch (error) {
-        console.error('actualizarProducto error:', error)
         throw errorHandler(error)
     }
 }
@@ -173,7 +167,6 @@ exports.eliminarProducto = async (id) => {
         await Producto.findByIdAndDelete(id)
         return { message: `Producto eliminado` }
     } catch (error) {
-        console.error('eliminarProducto error:', error)
         throw errorHandler(error)
     }
 }
