@@ -1,6 +1,8 @@
 const Hapi = require('@hapi/hapi')
 const Boom = require('@hapi/boom')
 const {
+    crearUsuario,
+    login,
     obtenerProductos,
     obtenerProducto,
     crearProducto,
@@ -12,6 +14,52 @@ const {
  * @type Hapi.ServerRoute[]
  */
 const routes = [
+    {
+        method: 'POST',
+        path: '/api/login',
+        async handler (request, h) {
+            try {
+                console.log('POST /api/login')
+                const { correoElectronico, contrasenia } = request.payload
+                const { token, id } = await login({ correoElectronico, contrasenia })
+
+                request.cookieAuth.set({ id })
+
+                return { message: 'Bienvenido', token }
+            } catch (error) {
+                throw new Boom.Boom(error)
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/api/usuario',
+        async handler (request, h) {
+            try {
+                console.log('POST /api/usuario')
+                const { nombre, grupo, correoElectronico, contrasenia } = request.payload
+                const usuarioNuevo = await crearUsuario({ nombre, grupo, correoElectronico, contrasenia })
+
+                return usuarioNuevo
+            } catch (error) {
+                throw new Boom.Boom(error)
+            }
+        }
+    },
+    {
+        method: 'POST',
+        path: '/api/logout',
+        async handler (request, h) {
+            try {
+                console.log('POST /api/logout')
+                request.cookieAuth.clear(['sid'])
+
+                return { message: 'Vuelva prontos' }
+            } catch (error) {
+                throw new Boom.Boom(error)
+            }
+        }
+    },
     {
         method: 'GET',
         path: '/api/productos',

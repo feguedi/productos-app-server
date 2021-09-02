@@ -1,7 +1,54 @@
 const Boom = require('@hapi/boom')
+const bcrypt = require('bcrypt')
 const _ = require('underscore')
 const Producto = require('../models/Producto')
+const Usuario = require('../models/Usuario')
+const Sesion = require('../models/Sesion')
+const { crearToken } = require('../plugins/auth')
 const { uploadToAWS } = require('../helpers/aws')
+
+exports.login = async ({ correoElectronico, contrasenia }) => {
+    try {
+        const usuarioBD = await Usuario.findOne({ correoElectronico }, 'id nombre grupo correoElectronico contrasenia')
+        const isPassValid = bcrypt.compareSync(contrasenia, usuarioBD.contrasenia)
+        if (!usuarioBD || !isPassValid) {
+            throw Boom.badRequest('Datos incorrectos')
+        }
+
+        const hasActiveSession = await Sesion.find({ usuario: usuarioBD.id, expiracion: { '$gte': Date.now() } })
+        if (hasActiveSession.length > 0) {
+            throw Boom.unauthorized('Ya tienes una sesión activa')
+        }
+
+        const token = crearToken({ id: usuarioBD.id, grupo: usuarioBD.grupo })
+        const sesionNueva = new Sesion({
+            usuario: usuarioBD.id,
+            token,
+            expiracion
+        })
+
+        return { id: usuarioBD.id, token }
+    } catch (error) {
+        console.error('login error:', error)
+        throw new Boom.Boom(error)
+    }
+}
+
+exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia }) => {
+    try {
+        const contraseniaHashed = bcrypt.hashSync(contrasenia, 16)
+        const usuarioNuevo = new Usuario({ nombre, grupo, correoElectronico, contrasenia: contraseniaHashed })
+        await usuarioNuevo.save()
+
+        return {
+            message: `Usuario${`${nombre ? (' ' + nombre) : ''} ${grupo ? ('(' + grupo + ') ') : ''}`}creado`,
+            id: usuarioNuevo.id,
+        }
+    } catch (error) {
+        console.error('crearUsuario error:', error)
+        throw new Boom.Boom(error)
+    }
+}
 
 exports.obtenerProductos = async () => {
     try {
