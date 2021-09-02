@@ -6,6 +6,7 @@ const Usuario = require('../models/Usuario')
 const Sesion = require('../models/Sesion')
 const { crearToken } = require('../plugins/auth')
 const { uploadToAWS } = require('../helpers/aws')
+const { errorHandler } = require('../helpers/errors')
 
 exports.login = async ({ correoElectronico, contrasenia }) => {
     try {
@@ -34,7 +35,7 @@ exports.login = async ({ correoElectronico, contrasenia }) => {
         return { id: usuarioBD.id, token }
     } catch (error) {
         console.error('login error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -50,7 +51,7 @@ exports.logout = async usuarioID => {
 
         return { ok: true }
     } catch (error) {
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -69,7 +70,7 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
         }
     } catch (error) {
         console.error('crearUsuario error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -80,7 +81,7 @@ exports.obtenerProductos = async () => {
         return { total: productos.length, productos }
     } catch (error) {
         console.error('obtenerProductos error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -91,7 +92,7 @@ exports.obtenerProducto = async (id) => {
         return producto
     } catch (error) {
         console.error('obtenerProducto error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -127,7 +128,7 @@ exports.crearProducto = async (nombre, precio, { imagen, disponible }) => {
         return { message: 'Se creo el producto' }
     } catch (error) {
         console.error('crearProducto error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -163,7 +164,7 @@ exports.actualizarProducto = async (id, datos = { nombre, precio, imagen, dispon
         return { message: `${producto.nombre} actualizado (${datosKeys.join(' ')})` }
     } catch (error) {
         console.error('actualizarProducto error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
 
@@ -173,6 +174,6 @@ exports.eliminarProducto = async (id) => {
         return { message: `Producto eliminado` }
     } catch (error) {
         console.error('eliminarProducto error:', error)
-        throw new Boom.Boom(error)
+        throw errorHandler(error)
     }
 }
