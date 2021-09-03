@@ -1,22 +1,37 @@
 const { token } = require('@hapi/jwt')
 const _ = require('underscore')
+const Sesion = require('../models/Sesion')
 const Usuario = require('../models/Usuario')
 
 exports.jwtStrategy = {
     keys: {
         key: process.env.SECRET_KEY,
-        algorithms: 'ES512',
+        algorithms: ['HS512', 'ES512']
     },
     verify: {
-        exp: true,
-        maxAgeSec: 14400 * 432, // 3 días
-        timeSkewSec: 15,
-        nbf: true,
         aud: false,
         iss: false,
         sub: false,
+        nbf: true,
+        exp: true,
+        maxAgeSec: 14400 * 432, // 3 días
+        timeSkewSec: 15,
     },
     async validate (artifacts, request, h) {
+        console.log('==================')
+        console.log('auth - jwtStrategy')
+        console.log('payload:')
+        console.log(artifacts.decoded.payload)
+        console.log('==================')
+
+        const sesionValida = await Sesion.findOne({ usuario: artifacts.decoded.payload.id, activa: true })
+        if (!sesionValida) {
+            return {
+                isValid: false,
+                credentials: null,
+            }
+        }
+
         const usuarioBD = await Usuario.findById(artifacts.decoded.payload.id, 'id nombre correoElectronico grupo')
         if (!usuarioBD) {
             return {
@@ -35,12 +50,10 @@ exports.jwtStrategy = {
     },
 }
 
-exports.crearToken = id => {
+exports.crearToken = datos => {
     try {
         const tokenNuevo = token.generate(
-            {
-                id,
-            },
+            datos,
             {
                 key: process.env.SECRET_KEY,
                 algorithm: 'HS512',

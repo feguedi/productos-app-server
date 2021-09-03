@@ -76,6 +76,12 @@ const routes = [
     {
         method: 'POST',
         path: '/api/logout',
+        options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('POST /api/logout')
@@ -85,10 +91,11 @@ const routes = [
                 if (!salir.ok) {
                     throw Boom.badRequest('No se pudo eliminar la sesión')
                 }
-                request.cookieAuth.clear(['sid'])
+                request.cookieAuth.clear('sid')
 
                 return { message: 'Vuelva prontos' }
             } catch (error) {
+                console.error(error)
                 throw new Boom.Boom(error)
             }
         }
@@ -96,6 +103,12 @@ const routes = [
     {
         method: 'GET',
         path: '/api/productos',
+        options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('GET /api/productos')
@@ -110,6 +123,12 @@ const routes = [
     {
         method: 'GET',
         path: '/api/producto/{id}',
+        options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('GET /api/producto/', request.params.id)
@@ -126,6 +145,10 @@ const routes = [
         method: 'POST',
         path: '/api/producto',
         options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
             payload: {
                 maxBytes: 10485760,
                 output: 'stream',
@@ -150,6 +173,10 @@ const routes = [
         method: 'PUT',
         path: '/api/producto/{id}',
         options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
             payload: {
                 maxBytes: 10485760,
                 output: 'stream',
@@ -174,6 +201,12 @@ const routes = [
     {
         method: 'DELETE',
         path: '/api/producto/{id}',
+        options: {
+            auth: {
+                strategies: ['session', 'token'],
+                scope: ['usuario-x', 'super', 'admin'],
+            },
+        },
         async handler (request, h) {
             try {
                 console.log('DELETE /api/producto/', request.params.id)

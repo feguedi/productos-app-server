@@ -6,12 +6,13 @@ const Hapi = require('@hapi/hapi')
  * @param {Hapi.ResponseToolkit} h Objeto Hapi
  */
 const checkApplicationJsonHeader = (request, h) => {
+    const authorization = request.headers['authorization' || 'Authorization']
+    const xOrg = request.headers['x-org']
     const contentType = request.headers['content-type' || 'Content-Type']
     const validHeaders = ['application/json', 'application/x-www-form-urlencoded', 'text/plain']
+    console.log('authorization:', authorization)
+    console.log('x-org:', xOrg)
     console.log('content-type:', contentType)
-
-    // --------------------------992661430282015016806536
-    // --------------------------247961007201944825835820
 
     return h.continue
 }

@@ -11,17 +11,21 @@ const { errorHandler } = require('../helpers/errors')
 exports.login = async ({ correoElectronico, contrasenia }) => {
     try {
         const usuarioBD = await Usuario.findOne({ correoElectronico }, 'id nombre grupo correoElectronico contrasenia')
-        const isPassValid = bcrypt.compareSync(contrasenia, usuarioBD.contrasenia)
-        if (!usuarioBD || !isPassValid) {
+        if (!usuarioBD) {
             throw Boom.badRequest('Datos incorrectos')
         }
 
-        const hasActiveSession = await Sesion.find({ usuario: usuarioBD.id, expiracion: { '$gte': Date.now() } })
+        const isPassValid = bcrypt.compareSync(contrasenia, usuarioBD.contrasenia)
+        if (!isPassValid) {
+            throw Boom.badRequest('Datos incorrectos')
+        }
+
+        const hasActiveSession = await Sesion.find({ usuario: usuarioBD.id, expiracion: { '$gte': Date.now() }, activa: true })
         if (hasActiveSession.length > 0) {
             throw Boom.unauthorized('Ya tienes una sesión activa')
         }
 
-        const token = crearToken({ id: usuarioBD.id, grupo: usuarioBD.grupo })
+        const token = crearToken({ id: usuarioBD.id })
         const momento = new Date()
         const expiracion = momento.getTime() + 259200000
         const sesionNueva = new Sesion({
@@ -62,9 +66,25 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
 
         const token = crearToken(usuarioNuevo.id)
 
+        if (!nombre && !grupo) {
+            const momento = new Date()
+            const expiracion = momento.getTime() + 259200000
+            const sesionNueva = new Sesion({
+                usuario: usuarioBD.id,
+                token,
+                expiracion
+            })
+
+            await sesionNueva.save()
+
+            return {
+                token,
+                message: 'Usuario creado',
+            }
+        }
+
         return {
-            token: !nombre && !grupo ? token : undefined,
-            message: `Usuario${`${nombre ? (' ' + nombre) : ''} ${grupo ? ('(' + grupo + ') ') : ''}`}creado`,
+            message: `Usuario ${nombre} (${grupo}) creado`,
             id: usuarioNuevo.id,
         }
     } catch (error) {
@@ -74,7 +94,8 @@ exports.crearUsuario = async ({ nombre, grupo, correoElectronico, contrasenia })
 
 exports.obtenerProductos = async () => {
     try {
-        const productos = await Producto.find().select('nombre precio imagen disponible')
+        const productosBD = await Producto.find().select('id nombre precio imagen disponible')
+        const productos = productosBD.map(producto => _.pick(producto, ['id', 'nombre', 'precio', 'imagen', 'disponible']))
 
         return { total: productos.length, productos }
     } catch (error) {
@@ -84,7 +105,8 @@ exports.obtenerProductos = async () => {
 
 exports.obtenerProducto = async (id) => {
     try {
-        const producto = await Producto.findById(id, 'nombre precio imagen disponible')
+        const productoBD = await Producto.findById(id, 'nombre precio imagen disponible')
+        const producto = _.pick(productoBD, ['id', 'nombre', 'precio', 'imagen', 'disponible'])
 
         return producto
     } catch (error) {

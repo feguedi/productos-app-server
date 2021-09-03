@@ -24,6 +24,8 @@ const UsuarioSchema = new Schema({
         type: String,
         required: [true, 'Se necesita la contraseña'],
     },
+}, {
+    timestamps: true,
 })
 
 UsuarioSchema.plugin(mongooseUniqueValidator, { message: 'Error con {PATH}. {VALUE} ya está registrado' })
